@@ -31,7 +31,7 @@ node install.js --host=1.2.3.4 --port=22 --user=root --key=~/.ssh/id_ed25519
 
 ```bash
 node install.js --name=zettacc-ssh --host=218.55.91.37 --user=root --key=~/.ssh/id_ed25519
-node install.js --name=zetta-b     --host=<zetta-b 주소> --user=root --key=~/.ssh/id_ed25519
+node install.js --name=zetta-b     --host=119.196.16.251 --user=root --key=~/.ssh/id_ed25519
 ```
 
 Claude 데스크톱에서는 "zetta-b로 접속해서 …"처럼 이름을 붙여 요청하면 됩니다.
