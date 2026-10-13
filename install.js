@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // Claude 데스크톱에 zettaCC 서버용 SSH MCP(ssh-mcp)를 등록한다.
 // 사용법: node install.js  (값을 물어봄)
-//    또는: node install.js --host=1.2.3.4 --port=22 --user=root --key=~/.ssh/id_ed25519
+//    또는: node install.js --name=zetta-b --host=1.2.3.4 --port=22 --user=root --key=~/.ssh/id_ed25519
+// --name이 다르면 서버를 여러 대 등록할 수 있다. 같은 이름이면 기존 항목을 덮어쓴다.
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const readline = require("readline");
 
-const SERVER_NAME = "zettacc-ssh";
+const DEFAULT_NAME = "zettacc-ssh";
 
 function configPath() {
   const home = os.homedir();
@@ -30,16 +31,25 @@ function parseArgs() {
   return out;
 }
 
-async function prompt(rl, question, def) {
-  return new Promise((resolve) => {
-    // 입력이 끝난 경우(파이프 등)에는 기본값을 쓴다.
-    const onClose = () => resolve(def || "");
-    rl.once("close", onClose);
-    rl.question(def ? `${question} [${def}]: ` : `${question}: `, (ans) => {
-      rl.off("close", onClose);
-      resolve(ans.trim() || def || "");
-    });
+// 입력 줄을 큐에 모아 두고 질문마다 한 줄씩 꺼낸다(붙여넣기·파이프 입력에서도 줄이 사라지지 않게).
+function lineReader(rl) {
+  const lines = [];
+  const waiters = [];
+  let closed = false;
+  rl.on("line", (l) => (waiters.length ? waiters.shift()(l) : lines.push(l)));
+  rl.on("close", () => {
+    closed = true;
+    while (waiters.length) waiters.shift()(null);
   });
+  return () => (lines.length ? Promise.resolve(lines.shift()) : closed ? Promise.resolve(null) : new Promise((r) => waiters.push(r)));
+}
+
+async function prompt(rl, question, def) {
+  process.stdout.write(def ? `${question} [${def}]: ` : `${question}: `);
+  const ans = await rl.nextLine();
+  if (ans === null) process.stdout.write("\n");
+  // 입력이 끝났거나(파이프 등) 빈 줄이면 기본값을 쓴다.
+  return (ans || "").trim() || def || "";
 }
 
 function expandHome(p) {
@@ -48,9 +58,15 @@ function expandHome(p) {
 
 async function main() {
   const opts = parseArgs();
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const rl = readline.createInterface({ input: process.stdin });
+  rl.nextLine = lineReader(rl);
   const defaultKey = path.join(os.homedir(), ".ssh", "id_ed25519");
 
+  const name = opts.name || (opts.host ? DEFAULT_NAME : await prompt(rl, "MCP 서버 이름 (서버마다 다르게)", DEFAULT_NAME));
+  if (!/^[A-Za-z0-9_-]+$/.test(name)) {
+    console.error("서버 이름에는 영문, 숫자, -, _ 만 쓸 수 있습니다.");
+    process.exit(1);
+  }
   const host = opts.host || (await prompt(rl, "zettaCC 서버 주소(IP 또는 도메인)"));
   const port = opts.port || (opts.host ? "22" : await prompt(rl, "SSH 포트", "22"));
   const user = opts.user || (await prompt(rl, "SSH 사용자명", "root"));
@@ -100,11 +116,12 @@ async function main() {
     console.log(`기존 설정 백업: ${backup}`);
   }
   config.mcpServers = config.mcpServers || {};
-  config.mcpServers[SERVER_NAME] = entry;
+  if (config.mcpServers[name]) console.log(`기존 '${name}' 항목을 새 값으로 바꿉니다.`);
+  config.mcpServers[name] = entry;
   fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
   if (password && process.platform !== "win32") fs.chmodSync(file, 0o600);
 
-  console.log(`\n'${SERVER_NAME}' MCP 서버를 등록했습니다: ${file}`);
+  console.log(`\n'${name}' MCP 서버를 등록했습니다: ${file}`);
   console.log("Claude 데스크톱을 완전히 종료(트레이/메뉴바 포함)한 뒤 다시 실행하세요.");
 }
 

@@ -25,6 +25,17 @@ node install.js
 node install.js --host=1.2.3.4 --port=22 --user=root --key=~/.ssh/id_ed25519
 ```
 
+### 서버 여러 대 등록하기
+
+`--name`으로 서버마다 다른 이름을 주면 함께 등록됩니다. 이름을 생략하면 `zettacc-ssh`가 쓰이고, 이미 있는 이름을 주면 그 항목만 새 값으로 바뀝니다.
+
+```bash
+node install.js --name=zettacc-ssh --host=218.55.91.37 --user=root --key=~/.ssh/id_ed25519
+node install.js --name=zetta-b     --host=<zetta-b 주소> --user=root --key=~/.ssh/id_ed25519
+```
+
+Claude 데스크톱에서는 "zetta-b로 접속해서 …"처럼 이름을 붙여 요청하면 됩니다.
+
 설치가 끝나면 **Claude 데스크톱을 완전히 종료**(macOS는 `Cmd+Q`, Windows는 트레이 아이콘에서 종료)한 뒤 다시 실행하세요.
 
 ## 수동 설치
