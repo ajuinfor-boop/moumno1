@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "zettacc-ssh": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "ssh-mcp",
+        "--",
+        "--host=ZETTACC_SERVER_IP",
+        "--port=22",
+        "--user=root",
+        "--key=/Users/YOUR_NAME/.ssh/id_ed25519",
+        "--timeout=60000"
+      ]
+    }
+  }
+}
