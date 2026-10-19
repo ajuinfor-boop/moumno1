@@ -30,7 +30,7 @@ node install.js --host=1.2.3.4 --port=22 --user=root --key=~/.ssh/id_ed25519
 `--name`으로 서버마다 다른 이름을 주면 함께 등록됩니다. 이름을 생략하면 `zettacc-ssh`가 쓰이고, 이미 있는 이름을 주면 그 항목만 새 값으로 바뀝니다.
 
 ```bash
-node install.js --name=zettacc-ssh --host=218.55.91.37 --user=root --key=~/.ssh/id_ed25519
+node install.js --name=zettacc-ssh --host=218.55.91.37 --port=6292 --user=root --key=~/.ssh/id_ed25519
 node install.js --name=zetta-b     --host=119.196.16.251 --port=6292 --user=root --key=~/.ssh/id_ed25519
 node install.js --name=zetta-c     --host=220.73.134.166 --port=6292 --user=root --key=~/.ssh/id_ed25519
 ```
